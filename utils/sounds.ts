@@ -11,6 +11,67 @@ export class SoundManager {
     }
   }
 
+  private bgmOsc: OscillatorNode | null = null;
+  private bgmGain: GainNode | null = null;
+  private bgmLfo: OscillatorNode | null = null;
+
+  playBgm() {
+    this.init();
+    if (!this.ctx || this.bgmOsc) return;
+
+    // Create a dark, mysterious drone
+    this.bgmOsc = this.ctx.createOscillator();
+    this.bgmGain = this.ctx.createGain();
+    this.bgmLfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+
+    this.bgmOsc.type = 'sawtooth';
+    this.bgmOsc.frequency.setValueAtTime(40, this.ctx.currentTime); // Low bass drone
+
+    this.bgmLfo.type = 'sine';
+    this.bgmLfo.frequency.setValueAtTime(0.5, this.ctx.currentTime); // Slow oscillation
+    lfoGain.gain.setValueAtTime(10, this.ctx.currentTime);
+
+    this.bgmLfo.connect(lfoGain);
+    lfoGain.connect(this.bgmOsc.frequency);
+
+    this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
+    this.bgmGain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 2); // Fade in
+
+    // Add a low-pass filter for character
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(200, this.ctx.currentTime);
+    filter.Q.setValueAtTime(10, this.ctx.currentTime);
+
+    this.bgmOsc.connect(filter);
+    filter.connect(this.bgmGain);
+    this.bgmGain.connect(this.ctx.destination);
+
+    this.bgmOsc.start();
+    this.bgmLfo.start();
+  }
+
+  stopBgm() {
+    if (this.bgmGain && this.ctx) {
+      const g = this.bgmGain;
+      const osc = this.bgmOsc;
+      const lfo = this.bgmLfo;
+      
+      g.gain.cancelScheduledValues(this.ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1); // Fade out
+      
+      setTimeout(() => {
+        osc?.stop();
+        lfo?.stop();
+      }, 1000);
+      
+      this.bgmOsc = null;
+      this.bgmGain = null;
+      this.bgmLfo = null;
+    }
+  }
+
   playFlap() {
     this.init();
     if (!this.ctx) return;

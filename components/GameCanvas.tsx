@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
-import { GameMode, GameState, Obstacle, MonsterType, ActiveMode } from '../types';
+import { GameMode, GameState, Obstacle, MonsterType, ActiveMode, DifficultyLevel, GameSettings } from '../types';
 import { SeededRandom, getDailySeed } from '../utils/random';
 import { drawBird, drawMonster, drawPillar, drawBackground, drawTrail, drawPortal } from '../utils/drawing';
 import { sounds } from '../utils/sounds';
@@ -8,6 +8,7 @@ import { sounds } from '../utils/sounds';
 interface GameCanvasProps {
   mode: GameMode;
   state: GameState;
+  difficulty: DifficultyLevel;
   onGameOver: (score: number) => void;
   onScoreUpdate: (score: number) => void;
   startingMode?: ActiveMode;
@@ -22,7 +23,7 @@ interface BirdEntity {
   creationMode: ActiveMode; // Individual mode to keep color consistent
 }
 
-const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, onGameOver, onScoreUpdate, startingMode = ActiveMode.NORMAL }) => {
+const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, onGameOver, onScoreUpdate, startingMode = ActiveMode.NORMAL }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(0);
   
@@ -38,11 +39,24 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, onGameOver, onScor
   const seededRandom = useRef<SeededRandom | null>(null);
   const hasForcedPortalSpawned = useRef(false);
 
-  const GRAVITY = 0.28;
-  const FLAP = -5.4;
-  const SPEED = 2.2; 
+  const getDifficultySettings = (diff: DifficultyLevel): GameSettings => {
+    switch (diff) {
+      case DifficultyLevel.EASY:
+        return { gravity: 0.22, flapStrength: -4.8, speed: 1.8, gapSize: 220, spawnInterval: 500 };
+      case DifficultyLevel.HARD:
+        return { gravity: 0.35, flapStrength: -6.0, speed: 3.2, gapSize: 140, spawnInterval: 320 };
+      case DifficultyLevel.MEDIUM:
+      default:
+        return { gravity: 0.28, flapStrength: -5.4, speed: 2.5, gapSize: 170, spawnInterval: 420 };
+    }
+  };
+
+  const settings = getDifficultySettings(difficulty);
+  const GRAVITY = settings.gravity;
+  const FLAP = settings.flapStrength;
+  const SPEED = settings.speed; 
   const BIRD_RADIUS = 16;
-  const SPAWN_INTERVAL = 420;
+  const SPAWN_INTERVAL = settings.spawnInterval;
 
   const initGame = useCallback(() => {
     const canvas = canvasRef.current;
@@ -95,6 +109,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, onGameOver, onScor
   useEffect(() => {
     if (state === GameState.PLAYING) {
       initGame();
+      sounds.playBgm();
+    } else {
+      sounds.stopBgm();
     }
   }, [state, initGame]);
 
@@ -156,7 +173,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, onGameOver, onScor
       });
     } else if (rng < 0.3) {
       const gapY = 250 + (rng * (canvasHeight - 500));
-      const gapSize = 170 - (Math.min(score.current, 500) * 0.1);
+      const gapSize = settings.gapSize - (Math.min(score.current, 500) * 0.1);
       newObstacles.push({
         id: groupId + '_t', groupId, type: 'pillar', x: canvasWidth, y: 0, width: 80, height: gapY - gapSize / 2,
         speedX: 0, speedY: 0, phase: 0, rotation: 0, passed: false
@@ -299,11 +316,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, onGameOver, onScor
         obs.passed = true;
         if (!scoredGroups.current.has(obs.groupId)) {
           scoredGroups.current.add(obs.groupId);
-          let multiplier = 1;
-          if (activeMode.current === ActiveMode.SPLIT) multiplier = activeBirds.length;
-          else if (activeMode.current === ActiveMode.MIRROR) multiplier = 3;
-          else if (activeMode.current === ActiveMode.GRAVITY) multiplier = 5;
-          score.current += (1 * multiplier);
+          score.current += 1;
           onScoreUpdate(score.current);
           sounds.playScore();
         }

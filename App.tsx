@@ -1,25 +1,26 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import GameCanvas from './components/GameCanvas';
-import { GameMode, GameState, ActiveMode } from './types';
-import { Trophy, Play, Calendar, RotateCcw, Zap, Check, Flame, Star } from 'lucide-react';
+import { GameMode, GameState, ActiveMode, DifficultyLevel } from './types';
+import { Trophy, Play, Calendar, RotateCcw, Zap, Check, Flame, Star, Shield, Sword, Ghost } from 'lucide-react';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.MENU);
   const [gameMode, setGameMode] = useState<GameMode>(GameMode.RANDOM);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(DifficultyLevel.MEDIUM);
   const [selectedBonusMode, setSelectedBonusMode] = useState<ActiveMode>(ActiveMode.NORMAL);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(1500); 
+  const [highScore, setHighScore] = useState(0); 
   const [dailyHighScore, setDailyHighScore] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem('shadow_flap_highscore');
     if (saved) {
         const val = parseInt(saved, 10);
-        setHighScore(Math.max(1500, val));
+        setHighScore(val);
     } else {
-        localStorage.setItem('shadow_flap_highscore', '1500');
-        setHighScore(1500);
+        localStorage.setItem('shadow_flap_highscore', '0');
+        setHighScore(0);
     }
     
     const dailyKey = `daily_${new Date().toDateString()}`;
@@ -73,6 +74,7 @@ const App: React.FC = () => {
         <GameCanvas 
           mode={gameMode} 
           state={gameState} 
+          difficulty={difficulty}
           onGameOver={handleGameOver} 
           onScoreUpdate={setScore}
           startingMode={selectedBonusMode}
@@ -84,7 +86,34 @@ const App: React.FC = () => {
           <h1 className="text-6xl font-black mb-2 tracking-tighter uppercase italic">
             Shadow<span className="text-red-600">Flap</span>
           </h1>
-          <p className="text-gray-400 mb-8 text-lg italic opacity-75">"Identify the portals, master the chaos."</p>
+          <p className="text-gray-400 mb-6 text-lg italic opacity-75">"Identify the portals, master the chaos."</p>
+
+          <div className="flex flex-col items-center w-full max-w-xs mb-8">
+              <span className="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest">Select Intensity</span>
+              <div className="grid grid-cols-3 gap-2 w-full">
+                  <button 
+                    onClick={() => setDifficulty(DifficultyLevel.EASY)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${difficulty === DifficultyLevel.EASY ? 'bg-green-600 border-green-400 scale-105 z-10' : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'}`}
+                  >
+                    <Shield size={18} className={difficulty === DifficultyLevel.EASY ? "text-white" : "text-green-500"} />
+                    <span className="text-[10px] font-black mt-1 uppercase">Easy</span>
+                  </button>
+                  <button 
+                    onClick={() => setDifficulty(DifficultyLevel.MEDIUM)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${difficulty === DifficultyLevel.MEDIUM ? 'bg-blue-600 border-blue-400 scale-105 z-10' : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'}`}
+                  >
+                    <Sword size={18} className={difficulty === DifficultyLevel.MEDIUM ? "text-white" : "text-blue-500"} />
+                    <span className="text-[10px] font-black mt-1 uppercase">Mid</span>
+                  </button>
+                  <button 
+                    onClick={() => setDifficulty(DifficultyLevel.HARD)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${difficulty === DifficultyLevel.HARD ? 'bg-red-600 border-red-400 scale-105 z-10' : 'bg-white/5 border-white/10 opacity-50 hover:opacity-100'}`}
+                  >
+                    <Ghost size={18} className={difficulty === DifficultyLevel.HARD ? "text-white" : "text-red-500"} />
+                    <span className="text-[10px] font-black mt-1 uppercase">Hard</span>
+                  </button>
+              </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-3 w-full max-w-xs">
             <button 
@@ -111,14 +140,14 @@ const App: React.FC = () => {
 
             <button 
               onClick={() => startGame(GameMode.MASTER)}
-              className={`group flex items-center justify-between px-6 py-3 rounded-2xl font-bold text-lg transition-all ${highScore >= 1500 ? 'bg-red-600 text-white active:scale-95' : 'bg-gray-900 text-gray-600 border border-white/5 opacity-50 cursor-not-allowed'}`}
-              disabled={highScore < 1500}
+              className={`group flex items-center justify-between px-6 py-3 rounded-2xl font-bold text-lg transition-all ${highScore >= 150 ? 'bg-red-600 text-white active:scale-95' : 'bg-gray-900 text-gray-600 border border-white/5 opacity-50 cursor-not-allowed'}`}
+              disabled={highScore < 150}
             >
               <div className="flex items-center gap-3">
-                <Flame size={20} className={highScore >= 1500 ? "animate-pulse" : ""} />
+                <Flame size={20} className={highScore >= 150 ? "animate-pulse" : ""} />
                 <span>Chaos Master</span>
               </div>
-              <span className="text-[10px] uppercase font-black tracking-widest">{highScore >= 1500 ? 'Chaos' : 'LOCKED'}</span>
+              <span className="text-[10px] uppercase font-black tracking-widest">{highScore >= 150 ? 'Chaos' : 'LOCKED'}</span>
             </button>
           </div>
 

@@ -47,9 +47,16 @@ export interface Obstacle {
   isPulsing?: boolean;
 }
 
+export enum DifficultyLevel {
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD'
+}
+
 export interface GameSettings {
   gravity: number;
   flapStrength: number;
   speed: number;
   gapSize: number;
+  spawnInterval: number;
 }
