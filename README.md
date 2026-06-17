@@ -1,20 +1,45 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Shadow Flap: Monster Chase
 
-# Run and deploy your AI Studio app
+Shadow Flap is a high-octane silhouette arcade game built with React 19 and the Canvas API. Experience a visceral twist on traditional "flappy" mechanics with dynamic portal-based mode shifts, monster dodge-patterns, and daily competitive tracks.
 
-This contains everything you need to run your app locally.
+![Game Screen Placeholder](https://via.placeholder.com/800x400?text=Shadow+Flap+Gameplay)
 
-View your app in AI Studio: https://ai.studio/apps/cdaf1a77-eaf3-49bc-a9ce-8cc9c9f30a8e
+## ✨ Features
+- **Dynamic Portals:** Transition between **Mirror**, **Split**, and **Gravity** modes in real-time.
+- **Three Difficulty Tiers:** Choose your intensity from **Easy**, **Medium**, to **Chaos Master**.
+- **Daily Seeded Tracks:** Every player globally faces the exact same monster patterns every 24 hours.
+- **Immersive Atmosphere:** High-contrast silhouette art with generative particle systems and a dark electronic drone soundtrack.
+- **Skill-Based Ranking:** Progress from Rank D to the elusive Rank S+.
 
-## Run Locally
+## 🚀 Getting Started
 
-**Prerequisites:**  Node.js
+### Development
+```bash
+# Install dependencies
+npm install
 
+# Start development server
+npm run dev
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+# Run unit tests
+npm run test
+```
+
+### Technologies
+- **Core:** React 19, TypeScript, Vite
+- **Styling:** Tailwind CSS, Lucide Icons
+- **Animation:** Canvas 2D API, Particles
+- **Audio:** Web Audio API Drone Synthesis
+- **Testing:** Vitest
+
+## 📖 Documentation
+- [PURPOSE.md](./PURPOSE.md): Product vision and value prop.
+- [ARCHITECTURE.md](./ARCHITECTURE.md): Technical deep-dive.
+- [TODO.md](./TODO.md): Roadmap and Code Review.
+
+## 🕹 Controls
+- **Tap/Click:** Flap / Upwards Thrust.
+- **Back Button:** Return to Menu (GameOver screen).
+
+---
+*Identified the portals. Mastered the chaos.*

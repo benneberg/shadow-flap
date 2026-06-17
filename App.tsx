@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GameCanvas from './components/GameCanvas';
 import { GameMode, GameState, ActiveMode, DifficultyLevel } from './types';
+import { getRank } from './utils/gameLogic';
 import { Trophy, Play, Calendar, RotateCcw, Zap, Check, Flame, Star, Shield, Sword, Ghost } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -45,15 +46,6 @@ const App: React.FC = () => {
     }
   }, [gameMode, highScore, dailyHighScore]);
 
-  const getRank = (s: number) => {
-      if (s >= 5000) return { label: 'S+', color: 'text-yellow-400' };
-      if (s >= 2500) return { label: 'S', color: 'text-red-500' };
-      if (s >= 1000) return { label: 'A', color: 'text-purple-500' };
-      if (s >= 500) return { label: 'B', color: 'text-blue-500' };
-      if (s >= 200) return { label: 'C', color: 'text-green-500' };
-      return { label: 'D', color: 'text-gray-400' };
-  };
-
   const startGame = (mode: GameMode) => {
     setGameMode(mode);
     setGameState(GameState.PLAYING);
@@ -75,6 +67,7 @@ const App: React.FC = () => {
           mode={gameMode} 
           state={gameState} 
           difficulty={difficulty}
+          highScore={highScore}
           onGameOver={handleGameOver} 
           onScoreUpdate={setScore}
           startingMode={selectedBonusMode}
@@ -140,14 +133,14 @@ const App: React.FC = () => {
 
             <button 
               onClick={() => startGame(GameMode.MASTER)}
-              className={`group flex items-center justify-between px-6 py-3 rounded-2xl font-bold text-lg transition-all ${highScore >= 150 ? 'bg-red-600 text-white active:scale-95' : 'bg-gray-900 text-gray-600 border border-white/5 opacity-50 cursor-not-allowed'}`}
-              disabled={highScore < 150}
+              className={`group flex items-center justify-between px-6 py-3 rounded-2xl font-bold text-lg transition-all ${highScore >= 50 ? 'bg-red-600 text-white active:scale-95' : 'bg-gray-900 text-gray-600 border border-white/5 opacity-50 cursor-not-allowed'}`}
+              disabled={highScore < 50}
             >
               <div className="flex items-center gap-3">
-                <Flame size={20} className={highScore >= 150 ? "animate-pulse" : ""} />
+                <Flame size={20} className={highScore >= 50 ? "animate-pulse" : ""} />
                 <span>Chaos Master</span>
               </div>
-              <span className="text-[10px] uppercase font-black tracking-widest">{highScore >= 150 ? 'Chaos' : 'LOCKED'}</span>
+              <span className="text-[10px] uppercase font-black tracking-widest">{highScore >= 50 ? 'Chaos' : 'LOCKED'}</span>
             </button>
           </div>
 
@@ -156,7 +149,7 @@ const App: React.FC = () => {
               <div className="grid grid-cols-3 gap-2 w-full">
                   <button 
                     onClick={() => toggleMode(ActiveMode.SPLIT)}
-                    className={`p-3 rounded-xl border flex flex-col items-center transition-all ${highScore >= 100 ? 'border-blue-500/50 bg-blue-500/10' : 'border-white/10 opacity-30 bg-black/50 pointer-events-none'} ${selectedBonusMode === ActiveMode.SPLIT ? 'bg-blue-600 border-blue-400' : 'bg-black/50'}`}
+                    className={`p-3 rounded-xl border flex flex-col items-center transition-all border-blue-500/50 bg-blue-500/10 ${selectedBonusMode === ActiveMode.SPLIT ? 'bg-blue-600 border-blue-400' : 'bg-black/50'}`}
                   >
                       {selectedBonusMode === ActiveMode.SPLIT && <Check size={12} className="absolute top-1 right-1" />}
                       <Zap size={20} className={selectedBonusMode === ActiveMode.SPLIT ? "text-white" : "text-blue-400"} />
@@ -164,7 +157,7 @@ const App: React.FC = () => {
                   </button>
                   <button 
                     onClick={() => toggleMode(ActiveMode.MIRROR)}
-                    className={`p-3 rounded-xl border flex flex-col items-center transition-all ${highScore >= 500 ? 'border-purple-500/50 bg-purple-500/10' : 'border-white/10 opacity-30 bg-black/50 pointer-events-none'} ${selectedBonusMode === ActiveMode.MIRROR ? 'bg-purple-600 border-purple-400' : 'bg-black/50'}`}
+                    className={`p-3 rounded-xl border flex flex-col items-center transition-all border-purple-500/50 bg-purple-500/10 ${selectedBonusMode === ActiveMode.MIRROR ? 'bg-purple-600 border-purple-400' : 'bg-black/50'}`}
                   >
                       {selectedBonusMode === ActiveMode.MIRROR && <Check size={12} className="absolute top-1 right-1" />}
                       <Zap size={20} className={selectedBonusMode === ActiveMode.MIRROR ? "text-white" : "text-purple-400"} />
@@ -172,7 +165,7 @@ const App: React.FC = () => {
                   </button>
                   <button 
                     onClick={() => toggleMode(ActiveMode.GRAVITY)}
-                    className={`p-3 rounded-xl border flex flex-col items-center transition-all ${highScore >= 1000 ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/10 opacity-30 bg-black/50 pointer-events-none'} ${selectedBonusMode === ActiveMode.GRAVITY ? 'bg-orange-600 border-orange-400' : 'bg-black/50'}`}
+                    className={`p-3 rounded-xl border flex flex-col items-center transition-all border-orange-500/50 bg-orange-500/10 ${selectedBonusMode === ActiveMode.GRAVITY ? 'bg-orange-600 border-orange-400' : 'bg-black/50'}`}
                   >
                       {selectedBonusMode === ActiveMode.GRAVITY && <Check size={12} className="absolute top-1 right-1" />}
                       <Zap size={20} className={selectedBonusMode === ActiveMode.GRAVITY ? "text-white" : "text-orange-400"} />

@@ -47,6 +47,18 @@ export interface Obstacle {
   isPulsing?: boolean;
 }
 
+export interface Particle {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
+}
+
 export enum DifficultyLevel {
   EASY = 'EASY',
   MEDIUM = 'MEDIUM',

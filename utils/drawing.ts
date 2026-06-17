@@ -252,6 +252,27 @@ export const drawPillar = (ctx: CanvasRenderingContext2D, x: number, y: number, 
   ctx.fill();
 };
 
+export function drawParticles(ctx: CanvasRenderingContext2D, particles: any[]) {
+  ctx.save();
+  particles.forEach(p => {
+    const alpha = p.life / p.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Add additive glow
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
 export const drawBackground = (ctx: CanvasRenderingContext2D, width: number, height: number, offset: number) => {
   const grad = ctx.createLinearGradient(0, 0, 0, height);
   grad.addColorStop(0, '#10111a');
