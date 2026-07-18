@@ -2,7 +2,8 @@
 export enum GameMode {
   RANDOM = 'RANDOM',
   DAILY = 'DAILY',
-  MASTER = 'MASTER'
+  MASTER = 'MASTER',
+  PRACTICE = 'PRACTICE'
 }
 
 export enum GameState {

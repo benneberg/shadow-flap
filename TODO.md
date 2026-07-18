@@ -1,7 +1,6 @@
 # Shadow Flap: Development TODO & Code Review
 
 ## 🛠 Active Roadmap (Incomplete Features)
-- [ ] **Multi-Touch Support:** Currently, one flap affects all birds in SPLIT mode. Implement individual tap regions for each bird.
 - [ ] **Global Leaderboards:** Integrate Firebase Firestore to store and display actual global scores for the Daily Track.
 - [ ] **Audio Mix Control:** Add a settings menu for BGM/SFX volume sliders.
 - [ ] **Adaptive Monsters:** Implement "Chase" logic for monsters where they slowly track the bird's Y-position.
@@ -26,6 +25,8 @@
 - **Issue:** Types in `types.ts` could be more strictly unioned (e.g. `ObstacleType` should determine available properties).
 
 ## ✅ Completed Recently
+- [x] **Interactive Practice Mode**: Added slow-motion (60% speed), path guides (white drop/blue jump curves), next-gap green target guidance, and infinite-lives automatic shield.
+- [x] **Multi-Touch / Key Targeting**: Map vertical screen segments (Top, Mid, Bottom) or key presses (Q/W/E or 1/2/3) to individual birds in Split Mode.
 - [x] Three-tier difficulty system (Easy, Mid, Chaos).
 - [x] Particle system integration for flapping and scoring.
 - [x] Unit tests for core utilities (`vitest`).

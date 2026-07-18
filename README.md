@@ -6,6 +6,7 @@ Shadow Flap is a high-octane silhouette arcade game built with React 19 and the 
 
 ## ✨ Features
 - **Dynamic Portals:** Transition between **Mirror**, **Split**, and **Gravity** modes in real-time.
+- **Interactive Practice Mode:** Learn monster patterns at 60% speed with predictive gravity curves (white/blue paths), upcoming gap target guides, and infinite-lives automatic shield.
 - **Three Difficulty Tiers:** Choose your intensity from **Easy**, **Medium**, to **Chaos Master**.
 - **Daily Seeded Tracks:** Every player globally faces the exact same monster patterns every 24 hours.
 - **Immersive Atmosphere:** High-contrast silhouette art with generative particle systems and a dark electronic drone soundtrack.
@@ -38,7 +39,10 @@ npm run test
 - [TODO.md](./TODO.md): Roadmap and Code Review.
 
 ## 🕹 Controls
-- **Tap/Click:** Flap / Upwards Thrust.
+- **Standard Tap/Click or Space/Up Arrow:** Flap / Upwards Thrust.
+- **Advanced Targeting (Split Mode):** 
+  - **Touch/Click:** Tap separate vertical screen zones (**Top**, **Middle**, or **Bottom**) to flap that specific bird.
+  - **Keyboard:** Press keys **1 / Q** (Top bird), **2 / W** (Middle bird), or **3 / E** (Bottom bird) to target individual birds.
 - **Back Button:** Return to Menu (GameOver screen).
 
 ---

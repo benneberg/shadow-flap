@@ -56,11 +56,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
   };
 
   const settings = getDifficultySettings(difficulty);
-  const GRAVITY = settings.gravity;
-  const FLAP = settings.flapStrength;
-  const SPEED = settings.speed; 
+  const isPractice = mode === GameMode.PRACTICE;
+  const GRAVITY = settings.gravity * (isPractice ? 0.72 : 1.0);
+  const FLAP = settings.flapStrength * (isPractice ? 0.82 : 1.0);
+  const SPEED = settings.speed * (isPractice ? 0.6 : 1.0); 
   const BIRD_RADIUS = 16;
-  const SPAWN_INTERVAL = settings.spawnInterval;
+  const SPAWN_INTERVAL = settings.spawnInterval * (isPractice ? 1.45 : 1.0);
 
   const emitParticles = useCallback((x: number, y: number, count: number, color: string) => {
     for (let i = 0; i < count; i++) {
@@ -121,20 +122,40 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
     }
   }, [mode, onScoreUpdate]);
 
-  const flap = useCallback((e: React.PointerEvent | PointerEvent) => {
+  const flap = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     if (state === GameState.PLAYING) {
-      if (e.cancelable) e.preventDefault();
-      
+      const canvas = canvasRef.current;
       const currentFlap = activeMode.current === ActiveMode.GRAVITY ? -FLAP : FLAP;
-      birds.current.forEach(bird => {
-        if (bird.active) {
-          bird.vel = currentFlap;
-          emitParticles(bird.x, bird.y, 3, getBirdColor(bird.creationMode));
+      
+      if (activeMode.current === ActiveMode.SPLIT && canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const touchY = e.clientY - rect.top;
+        const relativeY = touchY / canvas.height;
+        
+        const activeBirds = birds.current.filter(b => b.active);
+        activeBirds.sort((a, b) => a.y - b.y);
+        
+        if (activeBirds.length > 0) {
+          let targetIndex = 0;
+          if (relativeY < 0.35) targetIndex = 0; // Top section
+          else if (relativeY < 0.65) targetIndex = Math.min(1, activeBirds.length - 1); // Middle section
+          else targetIndex = activeBirds.length - 1; // Bottom section
+          
+          const targetBird = activeBirds[targetIndex];
+          targetBird.vel = currentFlap;
+          emitParticles(targetBird.x, targetBird.y, 4, getBirdColor(targetBird.creationMode));
         }
-      });
+      } else {
+        birds.current.forEach(bird => {
+          if (bird.active) {
+            bird.vel = currentFlap;
+            emitParticles(bird.x, bird.y, 3, getBirdColor(bird.creationMode));
+          }
+        });
+      }
       sounds.playFlap();
     }
-  }, [state]);
+  }, [state, FLAP]);
 
   useEffect(() => {
     if (state === GameState.PLAYING) {
@@ -144,6 +165,57 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
       sounds.stopBgm();
     }
   }, [state, initGame]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (state !== GameState.PLAYING) return;
+      
+      const currentFlap = activeMode.current === ActiveMode.GRAVITY ? -FLAP : FLAP;
+      
+      if (activeMode.current === ActiveMode.SPLIT) {
+        // Multi-touch & multi-key targeting:
+        // Key 1/q -> Top bird
+        // Key 2/w -> Middle bird
+        // Key 3/e -> Bottom bird
+        const activeBirds = birds.current.filter(b => b.active);
+        activeBirds.sort((a, b) => a.y - b.y);
+        
+        if (activeBirds.length > 0) {
+          let targetBird: BirdEntity | null = null;
+          if (e.key === '1' || e.key === 'q' || e.key === 'Q') {
+            targetBird = activeBirds[0];
+          } else if (e.key === '2' || e.key === 'w' || e.key === 'W') {
+            targetBird = activeBirds[Math.min(1, activeBirds.length - 1)];
+          } else if (e.key === '3' || e.key === 'e' || e.key === 'E') {
+            targetBird = activeBirds[activeBirds.length - 1];
+          }
+          
+          if (targetBird) {
+            targetBird.vel = currentFlap;
+            emitParticles(targetBird.x, targetBird.y, 4, getBirdColor(targetBird.creationMode));
+            sounds.playFlap();
+            return;
+          }
+        }
+      }
+      
+      if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'Spacebar') {
+        e.preventDefault();
+        birds.current.forEach(bird => {
+          if (bird.active) {
+            bird.vel = currentFlap;
+            emitParticles(bird.x, bird.y, 3, getBirdColor(bird.creationMode));
+          }
+        });
+        sounds.playFlap();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [state, FLAP]);
 
   const spawnObstacle = (canvasWidth: number, canvasHeight: number) => {
     const rng = seededRandom.current ? seededRandom.current.next() : Math.random();
@@ -163,24 +235,15 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
         return;
     }
 
-    const PORTAL_FREQ = mode === GameMode.MASTER ? 4 : 6;
+    const PORTAL_FREQ = (mode === GameMode.MASTER || mode === GameMode.PRACTICE) ? 3 : 4;
     const currentThresh = Math.floor(score.current / PORTAL_FREQ);
     const lastThresh = Math.floor(lastPortalScore.current / PORTAL_FREQ);
     
     if (currentThresh > lastThresh && score.current > 0) {
       lastPortalScore.current = score.current;
-      const savedHighScore = parseInt(localStorage.getItem('shadow_flap_highscore') || '0');
       
-      // Portals now unlocked MUCH earlier for testing and discovery
-      let availableModes: ActiveMode[] = [ActiveMode.NORMAL];
-      
-      if (mode === GameMode.MASTER || mode === GameMode.DAILY) {
-          availableModes = [ActiveMode.SPLIT, ActiveMode.MIRROR, ActiveMode.GRAVITY, ActiveMode.NORMAL];
-      } else {
-          if (savedHighScore >= 150) availableModes = [ActiveMode.SPLIT, ActiveMode.MIRROR, ActiveMode.GRAVITY, ActiveMode.NORMAL];
-          else if (savedHighScore >= 50) availableModes = [ActiveMode.SPLIT, ActiveMode.MIRROR, ActiveMode.NORMAL];
-          else availableModes = [ActiveMode.SPLIT, ActiveMode.NORMAL];
-      }
+      // Portals are unlocked by default across all tracks so players can enjoy them!
+      const availableModes: ActiveMode[] = [ActiveMode.SPLIT, ActiveMode.MIRROR, ActiveMode.GRAVITY, ActiveMode.NORMAL];
 
       const filteredModes = availableModes.filter(m => m !== activeMode.current);
       const portalToSpawn = filteredModes.length > 0 
@@ -294,7 +357,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
 
       // ROOF COLLISION: Tightened boundary
       if (bird.y < 0) {
-        if (activeMode.current !== ActiveMode.NORMAL) {
+        if (mode === GameMode.PRACTICE) {
+          handleCollision(bird);
+          bird.y = 30;
+          bird.vel = 1.2;
+        } else if (activeMode.current !== ActiveMode.NORMAL) {
           // Instead of immediate reset, give a chance if multiple birds exist
           handleCollision(bird);
           if (bird.active) { // If it was protected by armor
@@ -308,7 +375,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
 
       // FLOOR COLLISION
       if (bird.y > canvas.height) {
-          if (activeMode.current !== ActiveMode.NORMAL) {
+          if (mode === GameMode.PRACTICE) {
+              handleCollision(bird);
+              bird.y = canvas.height - 50;
+              bird.vel = -2.5;
+          } else if (activeMode.current !== ActiveMode.NORMAL) {
               handleCollision(bird);
               if (bird.active) {
                 bird.y = canvas.height / 2;
@@ -420,6 +491,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
       emitParticles(bird.x, bird.y, 20, (activeMode.current === ActiveMode.NORMAL ? '#ff4444' : getBirdColor(bird.creationMode)));
       shakeIntensity.current = 15;
       glitchTime.current = 10;
+
+      if (mode === GameMode.PRACTICE) {
+          invincibilityFrames.current = 90; // 1.5s invincibility shield
+          sounds.playHit();
+          bird.vel = 0;
+          return;
+      }
+
       if (activeMode.current === ActiveMode.SPLIT) {
           bird.active = false;
           sounds.playHit();
@@ -478,6 +557,92 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ mode, state, difficulty, highSc
     
     // Particles
     drawParticles(ctx, particles.current);
+
+    // Practice Mode Guides (Ghost Trail & Upcoming Opening Target Guide)
+    if (mode === GameMode.PRACTICE) {
+      birds.current.forEach(bird => {
+        if (!bird.active) return;
+        
+        ctx.save();
+        
+        // 1. Draw "gravity drop" trajectory path (if player does nothing)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.setLineDash([4, 6]);
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        let simY = bird.y;
+        let simVel = bird.vel;
+        ctx.moveTo(bird.x, bird.y);
+        const curGravity = activeMode.current === ActiveMode.GRAVITY ? -GRAVITY : GRAVITY;
+        for (let i = 1; i <= 35; i++) {
+          simVel += curGravity;
+          simY += simVel;
+          if (simY < 0 || simY > canvas.height) break;
+          ctx.lineTo(bird.x + i * SPEED, simY);
+        }
+        ctx.stroke();
+
+        // 2. Draw "flap jump" trajectory path (prediction if player clicks/taps right now)
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.55)'; // Cyan-blue indicator
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        simY = bird.y;
+        simVel = activeMode.current === ActiveMode.GRAVITY ? -FLAP : FLAP;
+        ctx.moveTo(bird.x, bird.y);
+        for (let i = 1; i <= 35; i++) {
+          simVel += curGravity;
+          simY += simVel;
+          if (simY < 0 || simY > canvas.height) break;
+          ctx.lineTo(bird.x + i * SPEED, simY);
+        }
+        ctx.stroke();
+        
+        ctx.restore();
+      });
+
+      // 3. Draw a guiding connection line pointing to the center of the next upcoming obstacle opening
+      const leadBird = birds.current.find(b => b.active);
+      if (leadBird) {
+        const upcoming = obstacles.current.find(obs => obs.x > leadBird.x && obs.type !== 'portal');
+        if (upcoming) {
+          let targetY = upcoming.y;
+          if (upcoming.type === 'pillar') {
+            const bottomPillar = obstacles.current.find(o => o.groupId === upcoming.groupId && o.id.endsWith('_b'));
+            if (bottomPillar) {
+              targetY = (upcoming.height + bottomPillar.y) / 2;
+            } else {
+              targetY = upcoming.y + upcoming.height / 2;
+            }
+          } else if (upcoming.type === 'spider') {
+            targetY = upcoming.y;
+          } else {
+            targetY = upcoming.y; // Monsters
+          }
+          
+          ctx.save();
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#22c55e';
+          ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)'; // Neon green
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(leadBird.x, leadBird.y);
+          ctx.lineTo(upcoming.x, targetY);
+          ctx.stroke();
+          
+          // Draw a pulsing target ring at the gap center
+          ctx.strokeStyle = 'rgba(34, 197, 94, 0.7)';
+          ctx.fillStyle = 'rgba(34, 197, 94, 0.08)';
+          ctx.beginPath();
+          const pulseR = 15 + Math.sin(Date.now() * 0.008) * 5;
+          ctx.arc(upcoming.x, targetY, pulseR, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
     
     birds.current.forEach(bird => {
       if (bird.active || bird.trail.length > 0) {
