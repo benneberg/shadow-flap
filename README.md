@@ -1,49 +1,77 @@
 # Shadow Flap: Monster Chase
 
-Shadow Flap is a high-octane silhouette arcade game built with React 19 and the Canvas API. Experience a visceral twist on traditional "flappy" mechanics with dynamic portal-based mode shifts, monster dodge-patterns, and daily competitive tracks.
+## Overview
+Shadow Flap is a silhouette arcade game built with React 19, TypeScript, and HTML5 Canvas 2D. Players navigate through procedurally generated monster patterns, dynamic transformation portals (Split, Mirror, Gravity), three difficulty tiers, seeded daily tracks, and an interactive practice mode.
 
-![Game Screen Placeholder](https://via.placeholder.com/800x400?text=Shadow+Flap+Gameplay)
+## Requirements
+- Node.js (v18 or higher recommended)
+- npm or bun package manager
+- Modern web browser with HTML5 Canvas and Web Audio API support
 
-## ✨ Features
-- **Dynamic Portals:** Transition between **Mirror**, **Split**, and **Gravity** modes in real-time.
-- **Interactive Practice Mode:** Learn monster patterns at 60% speed with predictive gravity curves (white/blue paths), upcoming gap target guides, and infinite-lives automatic shield.
-- **Three Difficulty Tiers:** Choose your intensity from **Easy**, **Medium**, to **Chaos Master**.
-- **Daily Seeded Tracks:** Every player globally faces the exact same monster patterns every 24 hours.
-- **Immersive Atmosphere:** High-contrast silhouette art with generative particle systems and a dark electronic drone soundtrack.
-- **Skill-Based Ranking:** Progress from Rank D to the elusive Rank S+.
-
-## 🚀 Getting Started
-
-### Development
+## Installation
 ```bash
-# Install dependencies
 npm install
+```
 
-# Start development server
+## Configuration
+No environment variables required. Application configuration is managed via:
+- `tsconfig.json` - TypeScript compiler configuration
+- `vite.config.ts` - Vite bundler and plugin configuration
+- `metadata.json` - Application metadata manifest
+
+## Usage
+Start the local development server:
+```bash
 npm run dev
+```
+Open your browser at the provided local URL (default: `http://localhost:3000`).
 
-# Run unit tests
+### Controls
+- **Standard Flap:** Screen Tap / Left Mouse Click / Spacebar / Up Arrow
+- **Split Mode Multi-Targeting (Touch):** Tap vertical zones (Top, Middle, Bottom) to command specific birds
+- **Split Mode Multi-Targeting (Keyboard):**
+  - Top Bird: `1` or `Q`
+  - Middle Bird: `2` or `W`
+  - Bottom Bird: `3` or `E`
+- **Menu Return:** Click "Return to Interface" or "End Practice & Exit"
+
+## Testing
+Run unit tests with Vitest:
+```bash
 npm run test
 ```
 
-### Technologies
-- **Core:** React 19, TypeScript, Vite
-- **Styling:** Tailwind CSS, Lucide Icons
-- **Animation:** Canvas 2D API, Particles
-- **Audio:** Web Audio API Drone Synthesis
-- **Testing:** Vitest
+## Build
+Compile the production static distribution bundle:
+```bash
+npm run build
+```
+Build output is generated into the `dist/` directory.
 
-## 📖 Documentation
-- [PURPOSE.md](./PURPOSE.md): Product vision and value prop.
-- [ARCHITECTURE.md](./ARCHITECTURE.md): Technical deep-dive.
-- [TODO.md](./TODO.md): Roadmap and Code Review.
+To preview the production build locally:
+```bash
+npm run preview
+```
 
-## 🕹 Controls
-- **Standard Tap/Click or Space/Up Arrow:** Flap / Upwards Thrust.
-- **Advanced Targeting (Split Mode):** 
-  - **Touch/Click:** Tap separate vertical screen zones (**Top**, **Middle**, or **Bottom**) to flap that specific bird.
-  - **Keyboard:** Press keys **1 / Q** (Top bird), **2 / W** (Middle bird), or **3 / E** (Bottom bird) to target individual birds.
-- **Back Button:** Return to Menu (GameOver screen).
+## Deployment
+UNSET
 
----
-*Identified the portals. Mastered the chaos.*
+## Repository Structure
+```
+├── App.tsx                 # Main application UI, state routing, and menus
+├── index.tsx               # Application DOM mounting entry point
+├── index.html              # Main HTML container
+├── types.ts                # TypeScript type definitions, enums, and interfaces
+├── game.test.ts            # Vitest unit tests for game logic and PRNG
+├── package.json            # Package manifest and script definitions
+├── tsconfig.json           # TypeScript configuration
+├── vite.config.ts          # Vite build and plugin setup
+├── metadata.json           # Application metadata
+├── components/
+│   └── GameCanvas.tsx      # Core 60 FPS Canvas game loop, physics, collisions
+└── utils/
+    ├── drawing.ts          # Canvas rendering functions for entities and UI
+    ├── gameLogic.ts        # Difficulty settings and rank calculations
+    ├── random.ts           # Seeded deterministic Linear Congruential PRNG
+    └── sounds.ts           # Web Audio API sound generator and synthesizer
+```
